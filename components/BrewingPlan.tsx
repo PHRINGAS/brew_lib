@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { generatePlanForBeer } from '../constants';
 import type { PhaseData, BeerStyle } from '../types';
-import { useBrewingProgress } from '../hooks/useBrewingProgress';
+import { useBrewingProgress } from '../src/hooks/useBrewingProgress';
 import ProgressBar from './ProgressBar';
 import Phase from './Phase';
 

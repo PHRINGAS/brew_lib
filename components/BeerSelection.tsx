@@ -1,5 +1,5 @@
 import React from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../src/lib/supabase';
 import type { BeerStyle } from '../types';
 
 interface BeerCardProps {
