@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { generatePlanForBeer } from '../constants';
 import type { PhaseData, BeerStyle } from '../types';
+import { useBrewingProgress } from '../hooks/useBrewingProgress';
 import ProgressBar from './ProgressBar';
 import Phase from './Phase';
 
@@ -11,52 +12,17 @@ interface BrewingPlanProps {
 
 const BrewingPlan: React.FC<BrewingPlanProps> = ({ beer, onBack }) => {
     const initialPhases = useMemo(() => generatePlanForBeer(beer), [beer]);
+    const { taskProgress, toggleTask, loading, error, isTaskCompleted } = useBrewingProgress(beer.id);
 
-    const getCompletedIdsFromUrl = (): Set<string> => {
-        const hash = window.location.hash;
-        const queryPart = hash.split('?')[1];
-        if (!queryPart) {
-            return new Set();
-        }
-        const params = new URLSearchParams(queryPart);
-        const completed = params.get('completed');
-        return new Set(completed ? completed.split(',') : []);
-    };
-
-    const [phases, setPhases] = useState<PhaseData[]>(() => {
-        const completedIds = getCompletedIdsFromUrl();
+    const phases = useMemo(() => {
         return initialPhases.map(phase => ({
             ...phase,
             tasks: phase.tasks.map(task => ({
                 ...task,
-                completed: completedIds.has(task.id),
+                completed: isTaskCompleted(task.id),
             })),
         }));
-    });
-
-    const handleToggleTask = useCallback((taskId: string) => {
-        setPhases(currentPhases => {
-            const newPhases = currentPhases.map(phase => ({
-                ...phase,
-                tasks: phase.tasks.map(task =>
-                    task.id === taskId ? { ...task, completed: !task.completed } : task
-                ),
-            }));
-
-            const updatedCompletedTaskIds = newPhases
-                .flatMap(phase => phase.tasks)
-                .filter(task => task.completed)
-                .map(task => task.id);
-
-            const hashBase = window.location.hash.split('?')[0];
-            const newHash = `${hashBase}${updatedCompletedTaskIds.length > 0 ? `?completed=${updatedCompletedTaskIds.join(',')}` : ''}`;
-            
-            // FIX: Replaced history.replaceState with a direct hash assignment for better stability.
-            window.location.hash = newHash;
-            
-            return newPhases;
-        });
-    }, []);
+    }, [initialPhases, isTaskCompleted]);
 
     const { totalTasks, completedTasks } = useMemo(() => {
         let total = 0;
@@ -70,6 +36,22 @@ const BrewingPlan: React.FC<BrewingPlanProps> = ({ beer, onBack }) => {
 
     const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-xl text-gray-600">Cargando progreso de elaboración...</div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-xl text-red-600">Error: {error}</div>
+            </div>
+        );
+    }
+
     return (
         <div>
             <header className="mb-12">
@@ -80,6 +62,9 @@ const BrewingPlan: React.FC<BrewingPlanProps> = ({ beer, onBack }) => {
                     <div>
                         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">Plan de Elaboración: {beer.name}</h1>
                         <p className="text-lg text-gray-600 max-w-3xl">{beer.description}</p>
+                        <div className="mt-2 text-sm text-gray-500">
+                            Progreso compartido en tiempo real - Los cambios se sincronizan automáticamente entre dispositivos
+                        </div>
                     </div>
                 </div>
             </header>
@@ -106,7 +91,7 @@ const BrewingPlan: React.FC<BrewingPlanProps> = ({ beer, onBack }) => {
 
             <div className="space-y-16">
                 {phases.map(phase => (
-                    <Phase key={phase.id} phase={phase} onToggleTask={handleToggleTask} />
+                    <Phase key={phase.id} phase={phase} onToggleTask={toggleTask} />
                 ))}
             </div>
         </div>

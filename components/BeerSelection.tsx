@@ -1,4 +1,5 @@
 import React from 'react';
+import { supabase } from '../lib/supabase';
 import type { BeerStyle } from '../types';
 
 interface BeerCardProps {
@@ -6,7 +7,28 @@ interface BeerCardProps {
 }
 
 const BeerCard: React.FC<BeerCardProps> = ({ beer }) => {
-    const handleSelect = () => {
+    const handleSelect = async () => {
+        // Create or get existing session when selecting a beer
+        try {
+            const { data: existingSessions } = await supabase
+                .from('brewing_sessions')
+                .select('id')
+                .eq('beer_style_id', beer.id)
+                .limit(1);
+
+            if (!existingSessions || existingSessions.length === 0) {
+                // Create new session
+                await supabase
+                    .from('brewing_sessions')
+                    .insert({
+                        beer_style_id: beer.id,
+                        session_name: `${beer.name} - ${new Date().toLocaleDateString()}`
+                    });
+            }
+        } catch (error) {
+            console.error('Error creating session:', error);
+        }
+
         window.location.hash = `#/plan/${beer.id}`;
         window.scrollTo(0, 0);
     };
