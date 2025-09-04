@@ -66,9 +66,56 @@ const BeerSelection: React.FC<BeerSelectionProps> = ({ beers }) => {
 
     return (
         <div>
-            <header className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">El Repertorio del Cervecero</h1>
-                <p className="text-lg text-gray-600 max-w-3xl mx-auto">Bienvenido al siguiente nivel de tu viaje cervecero. Selecciona un estilo para revelar su plan de elaboración detallado y comenzar tu próxima gran cocción.</p>
+            <header className="text-center mb-16 relative overflow-hidden">
+                {/* Animated background barley */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-10 left-1/4 w-8 h-8 opacity-10 animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }}>
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="text-amber-600">
+                            <path d="M12 2C10.9 2 10 2.9 10 4V6C10 7.1 10.9 8 12 8S14 7.1 14 6V4C14 2.9 13.1 2 12 2M12 10C10.9 10 10 10.9 10 12V14C10 15.1 10.9 16 12 16S14 15.1 14 14V12C14 10.9 13.1 10 12 10M12 18C10.9 18 10 18.9 10 20V22C10 23.1 10.9 24 12 24S14 23.1 14 22V20C14 18.9 13.1 18 12 18Z"/>
+                        </svg>
+                    </div>
+                    <div className="absolute top-16 right-1/4 w-6 h-6 opacity-10 animate-bounce" style={{ animationDelay: '1s', animationDuration: '2.5s' }}>
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="text-amber-700">
+                            <path d="M12 2C10.9 2 10 2.9 10 4V6C10 7.1 10.9 8 12 8S14 7.1 14 6V4C14 2.9 13.1 2 12 2M12 10C10.9 10 10 10.9 10 12V14C10 15.1 10.9 16 12 16S14 15.1 14 14V12C14 10.9 13.1 10 12 10M12 18C10.9 18 10 18.9 10 20V22C10 23.1 10.9 24 12 24S14 23.1 14 22V20C14 18.9 13.1 18 12 18Z"/>
+                        </svg>
+                    </div>
+                    <div className="absolute top-8 left-1/6 w-5 h-5 opacity-10 animate-bounce" style={{ animationDelay: '2s', animationDuration: '3.5s' }}>
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="text-amber-500">
+                            <path d="M12 2C10.9 2 10 2.9 10 4V6C10 7.1 10.9 8 12 8S14 7.1 14 6V4C14 2.9 13.1 2 12 2M12 10C10.9 10 10 10.9 10 12V14C10 15.1 10.9 16 12 16S14 15.1 14 14V12C14 10.9 13.1 10 12 10M12 18C10.9 18 10 18.9 10 20V22C10 23.1 10.9 24 12 24S14 23.1 14 22V20C14 18.9 13.1 18 12 18Z"/>
+                        </svg>
+                    </div>
+                    <div className="absolute top-12 right-1/6 w-7 h-7 opacity-10 animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '4s' }}>
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="text-amber-600">
+                            <path d="M12 2C10.9 2 10 2.9 10 4V6C10 7.1 10.9 8 12 8S14 7.1 14 6V4C14 2.9 13.1 2 12 2M12 10C10.9 10 10 10.9 10 12V14C10 15.1 10.9 16 12 16S14 15.1 14 14V12C14 10.9 13.1 10 12 10M12 18C10.9 18 10 18.9 10 20V22C10 23.1 10.9 24 12 24S14 23.1 14 22V20C14 18.9 13.1 18 12 18Z"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                {/* Main title with enhanced styling */}
+                <div className="relative z-10">
+                    <div className="flex items-center justify-center mb-4">
+                        <div className="w-12 h-12 mr-4 text-amber-600 animate-pulse">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C10.9 2 10 2.9 10 4V6C10 7.1 10.9 8 12 8S14 7.1 14 6V4C14 2.9 13.1 2 12 2M12 10C10.9 10 10 10.9 10 12V14C10 15.1 10.9 16 12 16S14 15.1 14 14V12C14 10.9 13.1 10 12 10M12 18C10.9 18 10 18.9 10 20V22C10 23.1 10.9 24 12 24S14 23.1 14 22V20C14 18.9 13.1 18 12 18Z"/>
+                            </svg>
+                        </div>
+                        <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 bg-clip-text text-transparent animate-pulse">
+                            El Repertorio del Cervecero
+                        </h1>
+                        <div className="w-12 h-12 ml-4 text-amber-600 animate-pulse" style={{ animationDelay: '0.5s' }}>
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C10.9 2 10 2.9 10 4V6C10 7.1 10.9 8 12 8S14 7.1 14 6V4C14 2.9 13.1 2 12 2M12 10C10.9 10 10 10.9 10 12V14C10 15.1 10.9 16 12 16S14 15.1 14 14V12C14 10.9 13.1 10 12 10M12 18C10.9 18 10 18.9 10 20V22C10 23.1 10.9 24 12 24S14 23.1 14 22V20C14 18.9 13.1 18 12 18Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    {/* Animated underline */}
+                    <div className="w-32 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mb-6 animate-pulse"></div>
+                    
+                    <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed animate-fade-in">
+                        Bienvenido al siguiente nivel de tu viaje cervecero. Selecciona un estilo para revelar su plan de elaboración detallado y comenzar tu próxima gran cocción.
+                    </p>
+                </div>
             </header>
             
             {families.map(family => (
