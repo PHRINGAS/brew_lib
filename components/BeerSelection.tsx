@@ -1,6 +1,9 @@
 import React from 'react';
+import { useState } from 'react';
 import { supabase } from '../src/lib/supabase';
 import type { BeerStyle } from '../types';
+import BrewingGuide from './BrewingGuide';
+import { BookOpen } from 'lucide-react';
 
 interface BeerCardProps {
     beer: BeerStyle;
@@ -63,6 +66,7 @@ interface BeerSelectionProps {
 
 const BeerSelection: React.FC<BeerSelectionProps> = ({ beers }) => {
     const families = [...new Set(beers.map(b => b.family))];
+    const [isGuideOpen, setIsGuideOpen] = useState(false);
 
     return (
         <div>
@@ -118,6 +122,20 @@ const BeerSelection: React.FC<BeerSelectionProps> = ({ beers }) => {
                 </div>
             </header>
             
+            {/* Brewing Guide Button */}
+            <div className="text-center mb-12">
+                <button
+                    onClick={() => setIsGuideOpen(true)}
+                    className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                >
+                    <BookOpen className="w-6 h-6 mr-3" />
+                    Guía Completa del Cervecero
+                </button>
+                <p className="text-gray-600 mt-3 text-sm">
+                    Consulta el anexo detallado con toda la información sobre ingredientes, equipamiento y técnicas
+                </p>
+            </div>
+            
             {families.map(family => (
                 <div key={family} className="mb-16">
                     <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b-2 border-amber-500 pb-2">{family}</h2>
@@ -128,6 +146,9 @@ const BeerSelection: React.FC<BeerSelectionProps> = ({ beers }) => {
                     </div>
                 </div>
             ))}
+            
+            {/* Brewing Guide Modal */}
+            <BrewingGuide isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
         </div>
     );
 };
