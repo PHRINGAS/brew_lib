@@ -1,153 +1,135 @@
 import React from 'react';
 import { supabase } from '../src/lib/supabase';
-import { useTheme } from '../src/contexts/ThemeContext';
+import type { BeerStyle } from '../types';
 
-interface Beer {
-  id: string;
-  name: string;
-  description: string;
-  abv: string;
-  ibu: string;
-  color: string;
+interface BeerCardProps {
+    beer: BeerStyle;
+}
+
+const BeerCard: React.FC<BeerCardProps> = ({ beer }) => {
+    const handleSelect = async () => {
+        // Create or get existing session when selecting a beer
+        try {
+            const { data: existingSessions } = await supabase
+                .from('brewing_sessions')
+                .select('id')
+                .eq('beer_style_id', beer.id)
+                .limit(1);
+
+            if (!existingSessions || existingSessions.length === 0) {
+                // Create new session
+                await supabase
+                    .from('brewing_sessions')
+                    .insert({
+                        beer_style_id: beer.id,
+                        session_name: `${beer.name} - ${new Date().toLocaleDateString()}`
+                    });
+            }
+        } catch (error) {
+            console.error('Error creating session:', error);
+        }
+
+        window.location.hash = `#/plan/${beer.id}`;
+        window.scrollTo(0, 0);
+    };
+
+    return (
+        <div className="bg-white rounded-xl shadow-md overflow-hidden transform hover:-translate-y-1 transition-transform duration-300 ease-in-out border border-gray-200 flex flex-col">
+            <div className="p-6 flex-grow">
+                <div className="uppercase tracking-wide text-sm text-amber-600 font-semibold">{beer.family}</div>
+                <h3 className="block mt-1 text-2xl leading-tight font-bold text-black">{beer.name}</h3>
+                <p className="mt-2 text-gray-500 flex-grow">{beer.description}</p>
+            </div>
+            <div className="p-6 bg-gray-50">
+                <div className="flex justify-between items-center text-sm text-gray-600 mb-4">
+                    <span className="font-medium">ABV: <span className="font-normal">{beer.parameters.abv}</span></span>
+                    <span className="font-medium">IBU: <span className="font-normal">{beer.parameters.ibu}</span></span>
+                    <span className="font-medium">SRM: <span className="font-normal">{beer.parameters.srm}</span></span>
+                </div>
+                <button
+                    onClick={handleSelect}
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300"
+                >
+                    Ver Plan de Elaboración
+                </button>
+            </div>
+        </div>
+    );
 }
 
 interface BeerSelectionProps {
-  beers: Beer[];
-  onBeerSelect: (beerId: string) => void;
+    beers: BeerStyle[];
 }
 
-const BeerCard: React.FC<{ beer: Beer; onSelect: () => void }> = ({ beer, onSelect }) => {
-  const { theme } = useTheme();
-  
-  const handleSelect = async () => {
-    try {
-      // Create or find existing brewing session
-      const { data: existingSession, error: fetchError } = await supabase
-        .from('brewing_sessions')
-        .select('*')
-        .eq('beer_style_id', beer.id)
-        .limit(1);
+const BeerSelection: React.FC<BeerSelectionProps> = ({ beers }) => {
+    const families = [...new Set(beers.map(b => b.family))];
 
-      if (!existingSession || existingSession.length === 0) {
-        const { error } = await supabase
-          .from('brewing_sessions')
-          .insert({
-            beer_style_id: beer.id,
-            session_name: `${beer.name} Brewing Session`
-          });
-
-        if (error) {
-          console.error('Error creating brewing session:', error);
-          return;
-        }
-      }
-
-      onSelect();
-    } catch (error: any) {
-      console.error('Error handling beer selection:', error);
-      onSelect(); // Still proceed with selection even if DB operation fails
-    }
-  };
-
-  return (
-    <div 
-      className={`${
-        theme === 'dark' 
-          ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' 
-          : 'bg-white border-gray-200 hover:bg-gray-50'
-      } border rounded-lg p-6 cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105`}
-      onClick={handleSelect}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-          {beer.name}
-        </h3>
-        <div 
-          className="w-8 h-8 rounded-full border-2 border-gray-300"
-          style={{ backgroundColor: beer.color }}
-        />
-      </div>
-      <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-4`}>
-        {beer.description}
-      </p>
-      <div className="flex justify-between text-sm">
-        <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-          ABV: <span className="font-semibold text-amber-600">{beer.abv}</span>
-        </span>
-        <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-          IBU: <span className="font-semibold text-amber-600">{beer.ibu}</span>
-        </span>
-      </div>
-    </div>
-  );
-};
-
-const BeerSelection: React.FC<BeerSelectionProps> = ({ beers, onBeerSelect }) => {
-  const { theme } = useTheme();
-
-  return (
-    <div className={`min-h-screen transition-colors duration-300 ${
-      theme === 'dark' ? 'bg-gray-900' : 'bg-gradient-to-br from-amber-50 to-orange-100'
-    }`}>
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 opacity-10 animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-amber-600">
-            <path d="M12 2L8 8h8l-4-6zm0 20l4-6H8l4 6zm-6-8L2 12l4-2v4zm12 0v-4l4 2-4 2z"/>
-          </svg>
+    return (
+        <div>
+            <header className="text-center mb-16 relative overflow-hidden">
+                {/* Animated background barley */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-10 left-1/4 w-8 h-8 opacity-10 animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }}>
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="text-amber-600">
+                            <path d="M12 2C10.9 2 10 2.9 10 4V6C10 7.1 10.9 8 12 8S14 7.1 14 6V4C14 2.9 13.1 2 12 2M12 10C10.9 10 10 10.9 10 12V14C10 15.1 10.9 16 12 16S14 15.1 14 14V12C14 10.9 13.1 10 12 10M12 18C10.9 18 10 18.9 10 20V22C10 23.1 10.9 24 12 24S14 23.1 14 22V20C14 18.9 13.1 18 12 18Z"/>
+                        </svg>
+                    </div>
+                    <div className="absolute top-16 right-1/4 w-6 h-6 opacity-10 animate-bounce" style={{ animationDelay: '1s', animationDuration: '2.5s' }}>
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="text-amber-700">
+                            <path d="M12 2C10.9 2 10 2.9 10 4V6C10 7.1 10.9 8 12 8S14 7.1 14 6V4C14 2.9 13.1 2 12 2M12 10C10.9 10 10 10.9 10 12V14C10 15.1 10.9 16 12 16S14 15.1 14 14V12C14 10.9 13.1 10 12 10M12 18C10.9 18 10 18.9 10 20V22C10 23.1 10.9 24 12 24S14 23.1 14 22V20C14 18.9 13.1 18 12 18Z"/>
+                        </svg>
+                    </div>
+                    <div className="absolute top-8 left-1/6 w-5 h-5 opacity-10 animate-bounce" style={{ animationDelay: '2s', animationDuration: '3.5s' }}>
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="text-amber-500">
+                            <path d="M12 2C10.9 2 10 2.9 10 4V6C10 7.1 10.9 8 12 8S14 7.1 14 6V4C14 2.9 13.1 2 12 2M12 10C10.9 10 10 10.9 10 12V14C10 15.1 10.9 16 12 16S14 15.1 14 14V12C14 10.9 13.1 10 12 10M12 18C10.9 18 10 18.9 10 20V22C10 23.1 10.9 24 12 24S14 23.1 14 22V20C14 18.9 13.1 18 12 18Z"/>
+                        </svg>
+                    </div>
+                    <div className="absolute top-12 right-1/6 w-7 h-7 opacity-10 animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '4s' }}>
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="text-amber-600">
+                            <path d="M12 2C10.9 2 10 2.9 10 4V6C10 7.1 10.9 8 12 8S14 7.1 14 6V4C14 2.9 13.1 2 12 2M12 10C10.9 10 10 10.9 10 12V14C10 15.1 10.9 16 12 16S14 15.1 14 14V12C14 10.9 13.1 10 12 10M12 18C10.9 18 10 18.9 10 20V22C10 23.1 10.9 24 12 24S14 23.1 14 22V20C14 18.9 13.1 18 12 18Z"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                {/* Main title with enhanced styling */}
+                <div className="relative z-10">
+                    <div className="flex items-center justify-center mb-4">
+                        <div className="w-12 h-12 mr-4 text-amber-600 animate-pulse">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C10.9 2 10 2.9 10 4V6C10 7.1 10.9 8 12 8S14 7.1 14 6V4C14 2.9 13.1 2 12 2M12 10C10.9 10 10 10.9 10 12V14C10 15.1 10.9 16 12 16S14 15.1 14 14V12C14 10.9 13.1 10 12 10M12 18C10.9 18 10 18.9 10 20V22C10 23.1 10.9 24 12 24S14 23.1 14 22V20C14 18.9 13.1 18 12 18Z"/>
+                            </svg>
+                        </div>
+                        <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 bg-clip-text text-transparent animate-pulse">
+                            El Repertorio del Cervecero
+                        </h1>
+                        <div className="w-12 h-12 ml-4 text-amber-600 animate-pulse" style={{ animationDelay: '0.5s' }}>
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C10.9 2 10 2.9 10 4V6C10 7.1 10.9 8 12 8S14 7.1 14 6V4C14 2.9 13.1 2 12 2M12 10C10.9 10 10 10.9 10 12V14C10 15.1 10.9 16 12 16S14 15.1 14 14V12C14 10.9 13.1 10 12 10M12 18C10.9 18 10 18.9 10 20V22C10 23.1 10.9 24 12 24S14 23.1 14 22V20C14 18.9 13.1 18 12 18Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    {/* Animated underline */}
+                    <div className="w-32 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mb-6 animate-pulse"></div>
+                    
+                    <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed animate-fade-in">
+                        Bienvenido al siguiente nivel de tu viaje cervecero. Selecciona un estilo para revelar su plan de elaboración detallado y comenzar tu próxima gran cocción.
+                    </p>
+                </div>
+            </header>
+            
+            {families.map(family => (
+                <div key={family} className="mb-16">
+                    <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b-2 border-amber-500 pb-2">{family}</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {beers.filter(b => b.family === family).map(beer => (
+                            <BeerCard key={beer.id} beer={beer} />
+                        ))}
+                    </div>
+                </div>
+            ))}
         </div>
-        <div className="absolute top-40 right-20 opacity-10 animate-bounce" style={{ animationDelay: '1s', animationDuration: '4s' }}>
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" className="text-amber-600">
-            <path d="M12 2L8 8h8l-4-6zm0 20l4-6H8l4 6zm-6-8L2 12l4-2v4zm12 0v-4l4 2-4 2z"/>
-          </svg>
-        </div>
-        <div className="absolute bottom-20 left-1/4 opacity-10 animate-bounce" style={{ animationDelay: '2s', animationDuration: '5s' }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-amber-600">
-            <path d="M12 2L8 8h8l-4-6zm0 20l4-6H8l4 6zm-6-8L2 12l4-2v4zm12 0v-4l4 2-4 2z"/>
-          </svg>
-        </div>
-      </div>
-
-      <div className="relative z-10 container mx-auto px-4 py-12">
-        {/* Enhanced Header */}
-        <div className="text-center mb-12 animate-fade-in">
-          <div className="flex items-center justify-center mb-6">
-            <div className="animate-pulse mr-4">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" className="text-amber-600">
-                <path d="M12 2L8 8h8l-4-6zm0 20l4-6H8l4 6zm-6-8L2 12l4-2v4zm12 0v-4l4 2-4 2z"/>
-              </svg>
-            </div>
-            <h1 className="text-6xl font-bold bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 bg-clip-text text-transparent animate-pulse">
-              BrewMaster Pro
-            </h1>
-            <div className="animate-pulse ml-4">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" className="text-amber-600">
-                <path d="M12 2L8 8h8l-4-6zm0 20l4-6H8l4 6zm-6-8L2 12l4-2v4zm12 0v-4l4 2-4 2z"/>
-              </svg>
-            </div>
-          </div>
-          
-          <div className="w-32 h-1 bg-gradient-to-r from-amber-600 to-amber-400 mx-auto mb-6 animate-pulse"></div>
-          
-          <p className={`text-xl ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} max-w-2xl mx-auto animate-slide-up`} 
-             style={{ animationDelay: '0.5s' }}>
-            Choose your beer style and let us guide you through the perfect brewing process
-          </p>
-        </div>
-
-        {/* Beer Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {beers.map((beer) => (
-            <BeerCard 
-              key={beer.id} 
-              beer={beer} 
-              onSelect={() => onBeerSelect(beer.id)} 
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default BeerSelection;
