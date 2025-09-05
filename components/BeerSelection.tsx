@@ -22,13 +22,13 @@ const BeerCard: React.FC<{ beer: Beer; onSelect: () => void }> = ({ beer, onSele
   const handleSelect = async () => {
     try {
       // Create or find existing brewing session
-      const { data: existingSession } = await supabase
+      const { data: existingSession, error: fetchError } = await supabase
         .from('brewing_sessions')
         .select('*')
         .eq('beer_style_id', beer.id)
-        .single();
+        .limit(1);
 
-      if (!existingSession) {
+      if (!existingSession || existingSession.length === 0) {
         const { error } = await supabase
           .from('brewing_sessions')
           .insert({
@@ -43,7 +43,7 @@ const BeerCard: React.FC<{ beer: Beer; onSelect: () => void }> = ({ beer, onSele
       }
 
       onSelect();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error handling beer selection:', error);
       onSelect(); // Still proceed with selection even if DB operation fails
     }
@@ -146,27 +146,6 @@ const BeerSelection: React.FC<BeerSelectionProps> = ({ beers, onBeerSelect }) =>
           ))}
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes slide-up {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .animate-fade-in {
-          animation: fade-in 1s ease-out;
-        }
-        
-        .animate-slide-up {
-          animation: slide-up 1s ease-out;
-          animation-fill-mode: both;
-        }
-      `}</style>
     </div>
   );
 };

@@ -36,7 +36,7 @@ const App: React.FC = () => {
             }
         }
         
-        return <BeerSelection beers={BEER_STYLES_DATA} />;
+        return <BeerSelection beers={BEER_STYLES_DATA} onBeerSelect={(beerId) => window.location.hash = `#/plan/${beerId}`} />;
     };
 
     return (
